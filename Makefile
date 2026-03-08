@@ -2,16 +2,16 @@
 GO ?= go
 
 PROJECT_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-
 CMD_DIR := $(PROJECT_ROOT)/cmd
 BIN_DIR := $(PROJECT_ROOT)/bin
 TOOLS_DIR := $(PROJECT_ROOT)/tools
+SCRIPTS_DIR := $(PROJECT_ROOT)/scripts
 ALL_GO_FILES := $(PROJECT_ROOT)/...
 
 PROGS := $(shell for d in $(CMD_DIR)/*; do [ -d $$d ] && basename $$d || true; done)
 BINARIES := $(addprefix $(BIN_DIR)/,$(PROGS))
 
-.PHONY: all build test fmt vet tidy install run hooks hook-msg linter clean setup lint help gofumpt
+.PHONY: all build test golden cover fmt vet tidy install run hooks hook-msg linter clean setup lint help gofumpt
 all: build
 
 ## build: Build all binaries in the cmd directory
@@ -51,7 +51,17 @@ $(TOOLS_DIR)/golangci-lint:
 
 ## test: Run all tests in the project
 test:
-	$(GO) test $(ALL_GO_FILES)
+	$(GO) test -count=1 -cover $(ALL_GO_FILES)
+
+## golden: update all test golden files
+golden:
+	$(GO) test $(ALL_GO_FILES) -update
+
+## cover: Generate test coverage report
+cover: $(BIN_DIR)
+	$(GO) test -coverprofile=$(BIN_DIR)/coverage.out $(ALL_GO_FILES)
+	$(GO) tool cover -html=$(BIN_DIR)/coverage.out -o $(BIN_DIR)/coverage.html
+	@$(SCRIPTS_DIR)/launch-browser.sh $(BIN_DIR)/coverage.html || true
 
 ## fmt: Format all Go files in the project
 fmt: gofumpt

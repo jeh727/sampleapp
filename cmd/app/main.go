@@ -8,7 +8,10 @@ import (
 )
 
 func main() {
-	err := app.RunServer(":8080", 3*time.Second)
+	address := "0.0.0.0:8080"
+	log.Printf("starting server on %s", address)
+
+	err := app.RunServer(address, 3*time.Second)
 	if err != nil {
 		log.Printf("server exiting with error: %v", err)
 	}
