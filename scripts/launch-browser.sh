@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Reference: https://www.codegenes.net/blog/clean-way-to-launch-the-web-browser-from-shell-script/
 
 set -euo pipefail
 IFS=$'\n\t'
