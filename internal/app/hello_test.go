@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"context"
 	"net/http/httptest"
 	"testing"
 
@@ -8,12 +9,10 @@ import (
 	"gotest.tools/v3/golden"
 )
 
-//var update = flag.Bool("update", false, "update golden files")
-
 func TestHello(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
+	testCases := []struct {
 		name   string
 		code   int
 		golden string
@@ -21,23 +20,22 @@ func TestHello(t *testing.T) {
 		{name: "Happy Path", code: 200, golden: "hello.golden"},
 	}
 
-	for _, tc := range tests {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
-			req := httptest.NewRequest("GET", "/", nil)
-			w := httptest.NewRecorder()
+			req := httptest.NewRequestWithContext(context.Background(), "GET", "/", nil)
+			rec := httptest.NewRecorder()
 
-			app.Hello(w, req)
+			app.Hello(rec, req)
 
-			code := w.Code
-			if code != tc.code {
-				t.Fatalf("expected status code %d, got %d", tc.code, code)
+			code := rec.Code
+			if code != testCase.code {
+				t.Fatalf("expected status code %d, got %d", testCase.code, code)
 			}
 
-			res := w.Body.String()
-			golden.Assert(t, res, tc.golden)
+			res := rec.Body.String()
+			golden.Assert(t, res, testCase.golden)
 		})
 	}
 }
